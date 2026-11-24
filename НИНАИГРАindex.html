@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Примерь на себя: Я – Учитель</title>
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --secondary-color: #f5a623;
+            --bg-color: #f0f4f8;
+            --text-color: #2d3748;
+            --correct-color: #48bb78;
+            --wrong-color: #f56565;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .game-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            max-width: 600px;
+            width: 100%;
+            padding: 30px;
+            text-align: center;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #718096;
+            margin-bottom: 30px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background-color: #e2e8f0;
+            border-radius: 5px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+
+        .progress {
+            height: 100%;
+            width: 0%;
+            background-color: var(--primary-color);
+            transition: width 0.3s ease;
+        }
+
+        .question-box {
+            text-align: left;
+            margin-bottom: 30px;
+        }
+
+        .question {
+            font-size: 1.2em;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: var(--text-color);
+        }
+
+        .options {
+            display: grid;
+            gap: 10px;
+        }
+
+        .option-btn {
+            padding: 15px;
+            border: 2px solid var(--primary-color);
+            border-radius: 10px;
+            background: white;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: left;
+        }
+
+        .option-btn:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .score-board {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 30px;
+            background: #f7fafc;
+            padding: 15px;
+            border-radius: 10px;
+        }
+
+        .score-item {
+            text-align: center;
+        }
+
+        .score-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: var(--secondary-color);
+        }
+
+        .end-screen {
+            display: none;
+            text-align: center;
+        }
+
+        .result-text {
+            font-size: 1.3em;
+            margin-bottom: 20px;
+        }
+
+        .final-score {
+            font-size: 2em;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+
+        .feedback {
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .feedback.correct {
+            background-color: var(--correct-color);
+            color: white;
+        }
+
+        .feedback.wrong {
+            background-color: var(--wrong-color);
+            color: white;
+        }
+
+        .restart-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 1.1em;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        .restart-btn:hover {
+            background-color: #3182ce;
+        }
+    </style>
+</head>
+<body>
+
+<div class="game-container">
+    <h1>Примерь на себя: Я – Учитель</h1>
+    <p class="subtitle">Квест-симулятор педагогической деятельности</p>
+    
+    <div class="score-board">
+        <div class="score-item">
+            <div>Уровень</div>
+            <div class="score-value" id="levelCounter">1</div>
+        </div>
+        <div class="score-item">
+            <div>Баллы мастерства</div>
+            <div class="score-value" id="scoreCounter">0</div>
+        </div>
+    </div>
+
+    <div class="progress-bar">
+        <div class="progress" id="progressBar"></div>
+    </div>
+
+    <div id="gameScreen">
+        <div class="question-box">
+            <div class="question" id="questionText">Загрузка...</div>
+            <div class="options" id="optionsContainer"></div>
+        </div>
+    </div>
+
+    <div id="endScreen" class="end-screen">
+        <div class="result-text" id="resultText"></div>
+        <div class="final-score" id="finalScore"></div>
+        <button class="restart-btn" onclick="restartGame()">Пройти путь заново</button>
+    </div>
+</div>
+
+<script>
+    const levels = [
+        {
+            id: 1,
+            title: "История и факты",
+            question: "Кто является основоположником научной педагогики в России?",
+            options: [
+                { text: "К.Д. Ушинский", points: 10 },
+                { text: "Л.Н. Толстой", points: 5 },
+                { text: "А.С. Макаренко", points: 5 },
+                { text: "А.В. Луначарский", points: 0 }
+            ]
+        },
+        {
+            id: 2,
+            title: "Первый урок",
+            question: "Ситуация 1. Ученик опоздал на 10 минут.",
+            options: [
+                { text: "Отругать при всём классе", points: -5 },
+                { text: "Спокойно пустить и продолжить урок", points: 10 },
+                { text: "Выгнать из класса", points: -10 },
+                { text: "Сделать вид, что не заметил", points: 0 }
+            ]
+        },
+        {
+            id: 3,
+            title: "Первый урок",
+            question: "Ситуация 2. Класс шумит, не слушает.",
+            options: [
+                { text: "Кричать громче", points: -5 },
+                { text: "Сменить деятельность, включить игру", points: 10 },
+                { text: "Уйти из класса", points: -15 },
+                { text: "Записать всех в дневник", points: -5 }
+            ]
+        },
+        {
+            id: 4,
+            title: "Первый урок",
+            question: "Ситуация 3. Ученик задал вопрос, ответа на который вы не знаете.",
+            options: [
+                { text: "Сказать «неважно»", points: -10 },
+                { text: "Признать и предложить найти ответ вместе", points: 10 },
+                { text: "Наказать за вопрос", points: -15 },
+                { text: "Перевести тему", points: 0 }
+            ]
+        },
+        {
+            id: 5,
+            title: "Первый урок",
+            question: "Ситуация 4. Ученик не понял тему.",
+            options: [
+                { text: "Сказать «сам виноват»", points: -10 },
+                { text: "Объяснить по-другому, привести пример", points: 10 },
+                { text: "Дать ещё 10 задач", points: -5 },
+                { text: "Вызвать родителей", points: -5 }
+            ]
+        },
+        {
+            id: 6,
+            title: "Работа с родителями",
+            question: "Ситуация 1. Родитель агрессивно обвиняет вас в плохих оценках ребёнка.",
+            options: [
+                { text: "Ответить агрессией", points: -10 },
+                { text: "Выслушать, показать работы ученика, предложить план", points: 15 },
+                { text: "Позвать директора", points: -5 },
+                { text: "Игнорировать", points: -10 }
+            ]
+        },
+        {
+            id: 7,
+            title: "Работа с родителями",
+            question: "Ситуация 2. Родители просят «поставить оценку получше».",
+            options: [
+                { text: "Поставить завышенную", points: -10 },
+                { text: "Объяснить критерии оценивания", points: 15 },
+                { text: "Нагрубить", points: -15 },
+                { text: "Согласиться, но тайно", points: -5 }
+            ]
+        },
+        {
+            id: 8,
+            title: "Работа с родителями",
+            question: "Ситуация 3. Родитель не приходит на собрания.",
+            options: [
+                { text: "Записать в «трудные»", points: -5 },
+                { text: "Связаться лично, узнать причину", points: 15 },
+                { text: "Пожаловаться директору", points: -5 },
+                { text: "Ничего не делать", points: 0 }
+            ]
+        }
+    ];
+
+    let currentLevel = 0;
+    let totalScore = 0;
+    let feedbackVisible = false;
+
+    const questionText = document.getElementById('questionText');
+    const optionsContainer = document.getElementById('optionsContainer');
+    const levelCounter = document.getElementById('levelCounter');
+    const scoreCounter = document.getElementById('scoreCounter');
+    const progressBar = document.getElementById('progressBar');
+    const gameScreen = document.getElementById('gameScreen');
+    const endScreen = document.getElementById('endScreen');
+    const resultText = document.getElementById('resultText');
+    const finalScore = document.getElementById('finalScore');
+
+    function loadLevel() {
+        if (feedbackVisible) return;
+        
+        if (currentLevel >= levels.length) {
+            endGame();
+            return;
+        }
+
+        const level = levels[currentLevel];
+        questionText.textContent = level.question;
+        levelCounter.textContent = level.id;
+        
+        optionsContainer.innerHTML = '';
+        
+        level.options.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.textContent = opt.text;
+            btn.className = 'option-btn';
+            btn.onclick = () => selectOption(opt.points);
+            optionsContainer.appendChild(btn);
+        });
+
+        const progress = ((currentLevel + 1) / levels.length) * 100;
+        progressBar.style.width = progress + '%';
+    }
+
+    function selectOption(points) {
+        feedbackVisible = true;
+        totalScore += points;
+        scoreCounter.textContent = totalScore;
+
+        optionsContainer.querySelectorAll('.option-btn').forEach(btn => {
+            btn.disabled = true;
+            if (btn.textContent === levels[currentLevel].options.find(o => o.points === points).text) {
+                btn.classList.add(points >= 0 ? 'correct' : 'wrong');
+            } else {
+                btn.style.opacity = '0.6';
+            }
+        });
+
+        setTimeout(() => {
+            feedbackVisible = false;
+            currentLevel++;
+            loadLevel();
+        }, 1500);
+    }
+
+    function endGame() {
+        gameScreen.style.display = 'none';
+        endScreen.style.display = 'block';
+
+        let resultMessage = "";
+        if (totalScore >= 50) {
+            resultMessage = "Вы — прирожденный педагог! Профессия учителя — ваше призвание.";
+        } else if (totalScore >= 0) {
+            resultMessage = "Хороший старт! У вас есть потенциал, но нужно развивать навыки.";
+        } else {
+            resultMessage = "Профессия учителя требует большой выдержки. Попробуйте еще раз!";
+        }
+
+        resultText.textContent = resultMessage;
+        finalScore.textContent = `Ваш итоговый счет: ${totalScore} баллов`;
+    }
+
+    function restartGame() {
+        currentLevel = 0;
+        totalScore = 0;
+        scoreCounter.textContent = 0;
+        levelCounter.textContent = 1;
+        progressBar.style.width = '0%';
+        
+        endScreen.style.display = 'none';
+        gameScreen.style.display = 'block';
+        
+        loadLevel();
+    }
+
+    // Запуск игры при загрузке страницы
+    loadLevel();
+</script>
+
+</body>
+</html>
